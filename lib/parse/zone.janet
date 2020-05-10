@@ -1,11 +1,15 @@
 # Logic related to parsing map lines
 
+(length "")
 # Parse a zone line
 (defn split-line [s]
-  (def type (string/slice s 0 1))
-  (->> (string/split "," (string/slice s 1))
-       (map string/trim)
-       (array/concat @[type])))
+  (if (> 3 (length s))
+    @[]
+    (do
+      (def type (string/slice s 0 1))
+      (->> (string/split "," (string/slice s 1))
+           (map string/trim)
+           (array/concat @[type])))))
 
 (assert (deep= @["L" "a" "b" "c"] (split-line "L a  ,b,c")))
 
@@ -38,6 +42,16 @@
 (assert (= (assertion-result :b) "200"))
 (assert (= (assertion-result :a) nil))
 (assert (= (assertion-result :label) nil))
+
+(defn load-zone [file]
+  (->> (slurp file) (string/split "\n")))
+
+(defn parse-zone-file [file]
+  (->> (load-zone file) (map parse-line)))
+
+(defn get-points [file]
+  (fn []
+    (parse-zone-file file)))
 
 # (parse-map-lines "/home/mcarter/src/ahungry-map/res/maps/tutorialb.txt")
 # Line format is as such:

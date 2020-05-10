@@ -8,17 +8,32 @@
    {:x1 100 :y1 0 :x2 100 :y2 100}
    ])
 
+(def scale-factor 0.1)
+
+
+(defn scale [n]
+  (* n scale-factor))
+
+(defn s->n [s]
+  (if (= nil s)
+    0
+    (math/round (scale (scan-number s)))))
+
 (defn point->line [ctx {:x1 x1 :y1 y1 :x2 x2 :y2 y2}]
   (-> ctx
       (set-attr "DRAWCOLOR" "0 255 255")
       (set-attr "DRAWSTYLE" "FILL")
-      (IupDrawLine x1 y1 x2 y2)))
+      (IupDrawLine
+       (+ 300 (s->n x1))
+       (+ 300 (s->n y1))
+       (+ 300 (s->n x2))
+       (+ 300 (s->n y2)))))
 
 (defn zone->lines [ctx points]
   (map (partial point->line ctx) points))
 
-(defn make-canvas [children]
-  (def canvas (IupCanvas (or children "NULL")))
+(defn make-canvas [f-get-points]
+  (def canvas (IupCanvas "NULL"))
   (iup-set-thunk-callback
    canvas "ACTION"
    (fn [_ _]
@@ -26,7 +41,7 @@
      (set-attr canvas "DRAWCOLOR" "0 0 0")
      (set-attr canvas "DRAWSTYLE" "FILL")
      (IupDrawRectangle canvas 0 0 100 100)
-     (zone->lines canvas (get-points))
+     (zone->lines canvas (f-get-points))
      (IupDrawEnd canvas)
      (const-IUP-DEFAULT)))
   canvas)
@@ -42,9 +57,9 @@
 (defn iup-init []
   (IupOpen (int-ptr) (char-ptr)))
 
-(defn main []
+(defn main [f-get-points]
   (iup-init)
   (show-dialog
    (make-dialog
-    (make-canvas nil)))
+    (make-canvas f-get-points)))
   (IupMainLoop))
