@@ -1,4 +1,5 @@
 # Logic related to parsing map lines
+(import ../pubsub :as q)
 
 (length "")
 # Parse a zone line
@@ -69,14 +70,28 @@
     :any (+ (range "09") (range "az") (range "AZ") ":" "-" " ")
     :main (* "[" (some :any) "] Your Location is " :num ", " :num ", " :num)})
 
+(def sample-loc-line "[Fri Oct 25 13:41:22 2019] Your Location is 3435.10, 562.05, -27.64")
+
 (assert
  (deep=
   @["3435.10" "562.05" "-27.64"]
   (peg/match
-   peg-location "[Fri Oct 25 13:41:22 2019] Your Location is 3435.10, 562.05, -27.64")))
+   peg-location sample-loc-line)))
+
+(defn location? [s]
+  (peg/match peg-location s))
 
 (defn parse-log-line [s]
   (zipmap [:x :y :z] (peg/match peg-location s)))
+
+(defn log-line-handler [s]
+  (cond
+    (location? s) (q/publish q/queue ::player-loc (parse-log-line s))
+    :else (pp "??")))
+
+(log-line-handler sample-loc-line)
+
+(q/subscribe q/queue ::player-loc (q/make-fn pp))
 
 (defn parse-log-file [file]
   (->> (load-log file) (map parse-log-line)))
