@@ -89,15 +89,25 @@
     (location? s) (q/publish q/queue ::player-loc (parse-log-line s))
     :else (pp "??")))
 
-(log-line-handler sample-loc-line)
+(defn update-player-coords [{:x sx :y sy :z sz}]
+  (pp "Updating player coords...")
+  (pp sx)
+  (pp sy)
+  (set x (scan-number sx))
+  (set y (scan-number sy)))
 
-(q/subscribe q/queue ::player-loc (q/make-fn pp))
+(q/subscribe q/queue ::player-loc (q/make-fn update-player-coords))
+
+(log-line-handler sample-loc-line)
 
 (defn parse-log-file [file]
   (->> (load-log file) (map parse-log-line)))
 
 (defn get-player []
-  (fn [] @{:x (++ x) :y (++ y)}))
+  (fn []
+    (pp "X is: ")
+    (pp x)
+    @{:x x :y y}))
 
 # (parse-map-lines "/home/mcarter/src/ahungry-map/res/maps/tutorialb.txt")
 # Line format is as such:
