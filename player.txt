@@ -1,0 +1,10 @@
+[Fri Oct 25 13:40:40 2019] LOADING, PLEASE WAIT...
+[Fri Oct 25 13:40:49 2019] You have entered Everfrost.
+[Fri Oct 25 13:41:09 2019] You have no idea what direction you are facing.
+[Fri Oct 25 13:41:09 2019] Your Location is 3658.45, 381.28, 4.38
+[Fri Oct 25 13:41:10 2019] Your Location is 3637.97, 403.98, 4.38
+[Fri Oct 25 13:41:18 2019] You have no idea what direction you are facing.
+[Fri Oct 25 13:41:18 2019] Your Location is 3539.57, 559.00, -1.59
+[Fri Oct 25 13:41:21 2019] You have no idea what direction you are facing.
+[Fri Oct 25 13:41:21 2019] Your Location is 3460.11, 560.20, -21.20
+[Fri Oct 25 13:41:22 2019] Your Location is 3435.10, 562.05, -27.64

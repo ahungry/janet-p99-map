@@ -24,7 +24,7 @@
 
 (defn add-timer []
   (def timer (IupTimer))
-  (IupSetAttribute timer "TIME" "100")
+  (IupSetAttribute timer "TIME" "500")
   (iup-set-thunk-callback
    timer "ACTION_CB"
    (fn [_ _]
@@ -84,12 +84,12 @@
   el)
 
 (defn scale [n]
-  (* n scale-factor))
+  (math/round (* n scale-factor)))
 
 (defn s->n [s]
   (if (= nil s)
     0
-    (math/round (scale (scan-number s)))))
+    (scale (scan-number s))))
 
 (defn point->line [ctx {:t t :x1 x1 :y1 y1 :x2 x2 :y2 y2}]
   (if (= "L" t)
@@ -101,25 +101,42 @@
          (+ y-offset (s->n y1))
          (+ x-offset (s->n x2))
          (+ y-offset (s->n y2))))
-    (pp t)))
+    #(pp t)
+    ))
 
 (defn zone->lines [ctx points]
   (map (partial point->line ctx) points))
 
-(defn make-canvas [f-get-points]
+(defn draw-player [ctx {:x x :y y}]
+  (let [sx (+ x-offset (scale x))
+        sy (+ y-offset (scale y))]
+    (-> ctx
+        (set-attr "DRAWCOLOR" "255 0 0")
+        (set-attr "DRAWSTYLE" "FILL")
+        (IupDrawArc
+         sx
+         sy
+         (+ sx 25)
+         (+ sy 25)
+         (* 2 3.1418)
+         1.0))))
+
+(defn make-canvas [f-get-points f-get-player]
   (def ctx (IupCanvas "NULL"))
   (set canvas ctx)
   (iup-set-thunk-callback
    ctx "ACTION"
-   (fn [_ _]
+   (fn [ih _]
      (unless set-timer? (add-timer) (set set-timer? true))
-     (IupDrawBegin ctx)
-     (set-attr ctx "DRAWCOLOR" "0 0 0")
-     (set-attr ctx "DRAWSTYLE" "FILL")
-     (IupDrawRectangle ctx 0 0 100 100)
+     (IupDrawBegin ih)
+     (set-attr ih "DRAWCOLOR" "0 0 0")
+     (set-attr ih "DRAWSTYLE" "FILL")
+     (IupDrawRectangle ih 0 0 100 100)
      (when (f-get-points)
-       (zone->lines ctx (f-get-points)))
-     (IupDrawEnd ctx)
+       (zone->lines ih (f-get-points)))
+     (when (f-get-player)
+       (draw-player ih (f-get-player)))
+     (IupDrawEnd ih)
      (const-IUP-DEFAULT)))
   ctx)
 
@@ -138,8 +155,8 @@
 (defn iup-init []
   (IupOpen (int-ptr) (char-ptr)))
 
-(defn main [f-get-points]
+(defn main [f-get-points f-get-player]
   (iup-init)
-  (def canvas (make-canvas f-get-points))
+  (def canvas (make-canvas f-get-points f-get-player))
   (show-dialog (make-dialog canvas))
   (IupMainLoop))

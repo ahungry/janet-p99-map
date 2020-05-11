@@ -3,5 +3,7 @@
 
 (defn main [_]
   (pp "Begin gui")
-  (gui/main (zone/get-points "./resources/zones/ecommons.txt"))
+  (gui/main
+   (zone/get-points "./resources/zones/ecommons.txt")
+   (zone/get-player))
   (pp "Hello"))

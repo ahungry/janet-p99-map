@@ -57,6 +57,33 @@
   (fn []
     (parse-zone-file file)))
 
+(var x 0)
+(var y 0)
+
+(defn load-log [file]
+  (->> (slurp file) (string/split "\n")))
+
+# [Fri Oct 25 13:41:22 2019] Your Location is 3435.10, 562.05, -27.64
+(def peg-location
+  '{:num (capture (some (+ :d "." "-")))
+    :any (+ (range "09") (range "az") (range "AZ") ":" "-" " ")
+    :main (* "[" (some :any) "] Your Location is " :num ", " :num ", " :num)})
+
+(assert
+ (deep=
+  @["3435.10" "562.05" "-27.64"]
+  (peg/match
+   peg-location "[Fri Oct 25 13:41:22 2019] Your Location is 3435.10, 562.05, -27.64")))
+
+(defn parse-log-line [s]
+  (zipmap [:x :y :z] (peg/match peg-location s)))
+
+(defn parse-log-file [file]
+  (->> (load-log file) (map parse-log-line)))
+
+(defn get-player []
+  (fn [] @{:x (++ x) :y (++ y)}))
+
 # (parse-map-lines "/home/mcarter/src/ahungry-map/res/maps/tutorialb.txt")
 # Line format is as such:
 # L 1186.0742, -2175.0840, 3.1260,  1215.0065, -2174.9312, 3.1260,  150, 0, 200
