@@ -78,6 +78,7 @@
      (pp "Working on K_ANY")
      (unless set-timer? (add-timer) (set set-timer? true))
      (key-handler k)
+     (IupRedraw canvas 0)
      (const-IUP-DEFAULT)
      ))
   el)
@@ -90,15 +91,17 @@
     0
     (math/round (scale (scan-number s)))))
 
-(defn point->line [ctx {:x1 x1 :y1 y1 :x2 x2 :y2 y2}]
-  (-> ctx
-      (set-attr "DRAWCOLOR" "0 255 255")
-      (set-attr "DRAWSTYLE" "FILL")
-      (IupDrawLine
-       (+ x-offset (s->n x1))
-       (+ y-offset (s->n y1))
-       (+ x-offset (s->n x2))
-       (+ y-offset (s->n y2)))))
+(defn point->line [ctx {:t t :x1 x1 :y1 y1 :x2 x2 :y2 y2}]
+  (if (= "L" t)
+    (-> ctx
+        (set-attr "DRAWCOLOR" "0 255 255")
+        (set-attr "DRAWSTYLE" "FILL")
+        (IupDrawLine
+         (+ x-offset (s->n x1))
+         (+ y-offset (s->n y1))
+         (+ x-offset (s->n x2))
+         (+ y-offset (s->n y2))))
+    (pp t)))
 
 (defn zone->lines [ctx points]
   (map (partial point->line ctx) points))

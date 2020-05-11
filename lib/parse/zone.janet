@@ -46,8 +46,12 @@
 (defn load-zone [file]
   (->> (slurp file) (string/split "\n")))
 
+(def points @{})
+
 (defn parse-zone-file [file]
-  (->> (load-zone file) (map parse-line)))
+  (if (get points file)
+    (get points file)
+    (put points file (->> (load-zone file) (map parse-line)))))
 
 (defn get-points [file]
   (fn []
