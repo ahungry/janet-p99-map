@@ -1,3 +1,14 @@
+(def KEY_UP 65362)
+(def KEY_DOWN 65364)
+(def KEY_LEFT 65361)
+(def KEY_RIGHT 65363)
+(def KEY_O 111)
+(def KEY_I 105)
+(def KEY_J 106)
+(def KEY_K 107)
+(def KEY_H 104)
+(def KEY_L 108)
+
 (defn set-attr [x k v]
   (IupSetAttribute x k v)
   x)
@@ -8,8 +19,54 @@
    {:x1 100 :y1 0 :x2 100 :y2 100}
    ])
 
-(def scale-factor 0.1)
+(var scale-factor 0.1)
+(var x-offset 300)
+(var y-offset 300)
 
+(defn key-left []
+  (set x-offset (+ x-offset 50) ))
+
+(defn key-right []
+  (set x-offset (- x-offset 50) ))
+
+(defn key-up []
+  (set y-offset (+ y-offset 50) ))
+
+(defn key-down []
+  (set y-offset (- y-offset 50) ))
+
+(defn key-zoom-in []
+  (set scale-factor (* 1.2 scale-factor)))
+
+(defn key-zoom-out []
+  (set scale-factor (* 0.8 scale-factor)))
+
+(defn key-handler [k]
+  (case k
+    536870984 (pp "Show help here")
+    #536870991 (file-selector nil nil)
+    KEY_UP    (key-up)
+    KEY_K     (key-up)
+    KEY_DOWN  (key-down)
+    KEY_J     (key-down)
+    KEY_LEFT  (key-left)
+    KEY_H     (key-left)
+    KEY_RIGHT (key-right)
+    KEY_L     (key-right)
+    KEY_I     (key-zoom-in)
+    KEY_O     (key-zoom-out)
+    (do (print (string/format "Unhandled key value: [%d]\n" k)))))
+
+# Do additional mapping work in iupkey.h
+(defn bind-keys [el]
+  (iup-set-thunk-callback
+   el "K_ANY"
+   (fn [ih k]
+     (pp "Working on K_ANY")
+     (key-handler k)
+     (const-IUP-DEFAULT)
+     ))
+  el)
 
 (defn scale [n]
   (* n scale-factor))
@@ -24,10 +81,10 @@
       (set-attr "DRAWCOLOR" "0 255 255")
       (set-attr "DRAWSTYLE" "FILL")
       (IupDrawLine
-       (+ 300 (s->n x1))
-       (+ 300 (s->n y1))
-       (+ 300 (s->n x2))
-       (+ 300 (s->n y2)))))
+       (+ x-offset (s->n x1))
+       (+ y-offset (s->n y1))
+       (+ x-offset (s->n x2))
+       (+ y-offset (s->n y2)))))
 
 (defn zone->lines [ctx points]
   (map (partial point->line ctx) points))
@@ -47,9 +104,23 @@
   canvas)
 
 (defn make-dialog [children]
-  (-> (IupDialog (or children "NULL"))
+  (def vbox (IupVbox (or children "NULL") (int-ptr)))
+  (bind-keys vbox)
+  (-> (IupDialog vbox)
       (set-attr "TITLE" "p99 mapper")
-      (set-attr "SIZE" "600x300")))
+      (set-attr "SIZE" "600x300")
+      #bind-keys
+      ))
+
+(defn add-timer [canvas]
+  (def timer (IupTimer))
+  (IupSetAttribute timer "TIME" "200")
+  (iup-set-thunk-callback
+   timer "ACTION_CB"
+   (fn [_ _]
+     (IupRedraw canvas 0)))
+  (IupSetAttribute timer "RUN" "yes")
+  canvas)
 
 (defn show-dialog [dialog]
   (IupShowXY dialog (const-IUP-CENTER) (const-IUP-CENTER)))
@@ -59,7 +130,7 @@
 
 (defn main [f-get-points]
   (iup-init)
-  (show-dialog
-   (make-dialog
-    (make-canvas f-get-points)))
+  (def canvas (make-canvas f-get-points))
+  (show-dialog (make-dialog canvas))
+  (add-timer canvas)
   (IupMainLoop))
