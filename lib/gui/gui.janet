@@ -19,6 +19,19 @@
    {:x1 100 :y1 0 :x2 100 :y2 100}
    ])
 
+(var canvas nil)
+(var set-timer? false)
+
+(defn add-timer []
+  (def timer (IupTimer))
+  (IupSetAttribute timer "TIME" "100")
+  (iup-set-thunk-callback
+   timer "ACTION_CB"
+   (fn [_ _]
+     (IupRedraw canvas 0)))
+  (IupSetAttribute timer "RUN" "yes")
+  canvas)
+
 (var scale-factor 0.1)
 (var x-offset 300)
 (var y-offset 300)
@@ -63,6 +76,7 @@
    el "K_ANY"
    (fn [ih k]
      (pp "Working on K_ANY")
+     (unless set-timer? (add-timer) (set set-timer? true))
      (key-handler k)
      (const-IUP-DEFAULT)
      ))
@@ -90,18 +104,21 @@
   (map (partial point->line ctx) points))
 
 (defn make-canvas [f-get-points]
-  (def canvas (IupCanvas "NULL"))
+  (def ctx (IupCanvas "NULL"))
+  (set canvas ctx)
   (iup-set-thunk-callback
-   canvas "ACTION"
+   ctx "ACTION"
    (fn [_ _]
-     (IupDrawBegin canvas)
-     (set-attr canvas "DRAWCOLOR" "0 0 0")
-     (set-attr canvas "DRAWSTYLE" "FILL")
-     (IupDrawRectangle canvas 0 0 100 100)
-     (zone->lines canvas (f-get-points))
-     (IupDrawEnd canvas)
+     (unless set-timer? (add-timer) (set set-timer? true))
+     (IupDrawBegin ctx)
+     (set-attr ctx "DRAWCOLOR" "0 0 0")
+     (set-attr ctx "DRAWSTYLE" "FILL")
+     (IupDrawRectangle ctx 0 0 100 100)
+     (when (f-get-points)
+       (zone->lines ctx (f-get-points)))
+     (IupDrawEnd ctx)
      (const-IUP-DEFAULT)))
-  canvas)
+  ctx)
 
 (defn make-dialog [children]
   (def vbox (IupVbox (or children "NULL") (int-ptr)))
@@ -111,16 +128,6 @@
       (set-attr "SIZE" "600x300")
       #bind-keys
       ))
-
-(defn add-timer [canvas]
-  (def timer (IupTimer))
-  (IupSetAttribute timer "TIME" "200")
-  (iup-set-thunk-callback
-   timer "ACTION_CB"
-   (fn [_ _]
-     (IupRedraw canvas 0)))
-  (IupSetAttribute timer "RUN" "yes")
-  canvas)
 
 (defn show-dialog [dialog]
   (IupShowXY dialog (const-IUP-CENTER) (const-IUP-CENTER)))
@@ -132,5 +139,4 @@
   (iup-init)
   (def canvas (make-canvas f-get-points))
   (show-dialog (make-dialog canvas))
-  (add-timer canvas)
   (IupMainLoop))
