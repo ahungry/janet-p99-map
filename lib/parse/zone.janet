@@ -1,5 +1,10 @@
 # Logic related to parsing map lines
 (import ../pubsub :as q)
+(import ../util :as u)
+
+(import ./location)
+(import ./entered-zone)
+(import ./zone-label-to-key)
 
 (length "")
 # Parse a zone line
@@ -14,18 +19,10 @@
 
 (assert (deep= @["L" "a" "b" "c"] (split-line "L a  ,b,c")))
 
-(defn zipmap [ks vs]
-  (def res @{})
-  (map (fn [k v]
-         (put res k v)) ks vs)
-  res)
-
-(assert (deep= @{:x 1 :y 2} (zipmap [:x :y] [1 2])))
-
 
 (defn parse-line [s]
   (->> (split-line s)
-       (zipmap [:t :x1 :y1 :z1 :x2 :y2 :z2 :r :g :b :a :label])))
+       (u/zipmap [:t :x1 :y1 :z1 :x2 :y2 :z2 :r :g :b :a :label])))
 
 (def assertion-result
   (parse-line
@@ -64,30 +61,15 @@
 (defn load-log [file]
   (->> (slurp file) (string/split "\n")))
 
-# [Fri Oct 25 13:41:22 2019] Your Location is 3435.10, 562.05, -27.64
-(def peg-location
-  '{:num (capture (some (+ :d "." "-")))
-    :any (+ (range "09") (range "az") (range "AZ") ":" "-" " ")
-    :main (* "[" (some :any) "] Your Location is " :num ", " :num ", " :num)})
-
-(def sample-loc-line "[Fri Oct 25 13:41:22 2019] Your Location is 3435.10, 562.05, -27.64")
-
-(assert
- (deep=
-  @["3435.10" "562.05" "-27.64"]
-  (peg/match
-   peg-location sample-loc-line)))
-
-(defn location? [s]
-  (peg/match peg-location s))
-
-(defn parse-log-line [s]
-  (zipmap [:x :y :z] (peg/match peg-location s)))
-
 (defn log-line-handler [s]
   (cond
-    (location? s) (q/publish q/queue ::player-loc (parse-log-line s))
-    :else (pp "??")))
+    (location/location? s)
+    (q/publish q/queue ::player-loc (location/parse-log-line s))
+
+    (entered-zone/entered-zone? s)
+    (q/publish q/queue ::player-zone-change (entered-zone/entered-zone? s))
+
+    :else (eprintf "Unrecognized line found: %s" s)))
 
 (defn update-player-coords [{:x sx :y sy :z sz}]
   (pp "Updating player coords...")
@@ -96,17 +78,26 @@
   (set x (scan-number sx))
   (set y (scan-number sy)))
 
-(q/subscribe q/queue ::player-loc (q/make-fn update-player-coords))
+(defn update-player-zone [[zone-name]]
+  (pp "NEW ZONE ENTERED...")
+  (pp zone-name)
+  (pp "Translated was: ")
+  (pp (zone-label-to-key/label->key zone-name)))
 
-(log-line-handler sample-loc-line)
+(q/subscribe q/queue ::player-loc (q/make-fn update-player-coords))
+(q/subscribe q/queue ::player-zone-change (q/make-fn update-player-zone))
+
+#(log-line-handler sample-loc-line)
 
 (defn parse-log-file [file]
-  (->> (load-log file) (map parse-log-line)))
+  (->> (load-log file) (map log-line-handler)))
+
+(parse-log-file "player.txt")
 
 (defn get-player []
   (fn []
-    (pp "X is: ")
-    (pp x)
+    #(pp "X is: ")
+    #(pp x)
     @{:x x :y y}))
 
 # (parse-map-lines "/home/mcarter/src/ahungry-map/res/maps/tutorialb.txt")
@@ -117,4 +108,4 @@
 # P 624.6537, 2031.0975, 90.6260,  0, 0, 0,  3,  to_The_Estate_of_Unrest
 # (defn parse-line [s]
 #   (->>                          #(clojure.string/split s #",* +")
-#    (zipmap [:t :x1 :y1 :z1 :x2 :y2 :z2 :r :g :b :a :label])))
+#    (u/zipmap [:t :x1 :y1 :z1 :x2 :y2 :z2 :r :g :b :a :label])))
