@@ -46,14 +46,20 @@
 
 (def points @{})
 
-(defn parse-zone-file [file]
-  (if (get points file)
-    (get points file)
-    (put points file (->> (load-zone file) (map parse-line)))))
+(var current-zone "ecommons")
 
-(defn get-points [file]
+(defn parse-current-zone-file []
+  (let [file (string (u/file-finder "." "resources" 0 3) "/zones/" current-zone ".txt")]
+    (if (get points file)
+      (get points file)
+      (put points file (->> (load-zone file) (map parse-line))))))
+
+(defn get-points [name]
+  (set current-zone name)
   (fn []
-    (parse-zone-file file)))
+    (pp "The current zone is: ")
+    (pp current-zone)
+    (parse-current-zone-file)))
 
 (var x 0)
 (var y 0)
@@ -82,7 +88,9 @@
   (pp "NEW ZONE ENTERED...")
   (pp zone-name)
   (pp "Translated was: ")
-  (pp (zone-label-to-key/label->key zone-name)))
+  (pp (zone-label-to-key/label->key zone-name))
+  (set current-zone (zone-label-to-key/label->key zone-name))
+  )
 
 (q/subscribe q/queue ::player-loc (q/make-fn update-player-coords))
 (q/subscribe q/queue ::player-zone-change (q/make-fn update-player-zone))
@@ -92,10 +100,11 @@
 (defn parse-log-file [file]
   (->> (load-log file) (map log-line-handler)))
 
-(parse-log-file "player.txt")
 
 (defn get-player []
   (fn []
+    # Need to ensure this runs in a different background
+    (parse-log-file "player.txt")
     #(pp "X is: ")
     #(pp x)
     @{:x x :y y}))
