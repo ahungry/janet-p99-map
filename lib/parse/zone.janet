@@ -103,7 +103,9 @@
 
 (defn get-player []
   (fn []
-    # Need to ensure this runs in a different background
+    # Need to ensure this runs in a different background thread
+    # Ideally, we would parse log file and write zone/loc to sqlite
+    # Then just select them out here.
     (parse-log-file "player.txt")
     #(pp "X is: ")
     #(pp x)
