@@ -98,14 +98,40 @@
 
 #(log-line-handler sample-loc-line)
 
-(defn parse-log-file [file]
+(var fh nil)
+(var fh-last-size 0)
+
+(defn parse-log-file-slow
+  "Parse/handle every possible line in the file."
+  [file]
+  (pp "Doing initial slow read...")
   (->> (load-log file) (map log-line-handler)))
+
+(defn parse-log-file
+  "Just work on new lines that get added after initial parse."
+  [file]
+  (if (= nil fh)
+    (do
+      (parse-log-file-slow file)
+      (let [{:size size} (os/stat file)]
+        (set fh (file/open file :r))
+        # Put the cursor at the end of the file
+        (set fh-last-size size)
+        (file/seek fh :cur (- size 0))))
+    # Here we know we have the fh and we're at the end of it.
+    (when (> (get (os/stat file) :size) fh-last-size)
+      (pp "File grew in size, reading from it now...")
+      (set fh-last-size (get (os/stat file) :size))
+      (def lines (file/read fh :all))
+      (pp "And we see these lines: ")
+      (pp lines)
+      (map log-line-handler (string/split "\n" lines)))))
 
 (thread/new
  (fn [parent]
    (while true
      (do
-       (os/sleep 2)
+       (os/sleep 1)
        (parse-log-file "player.txt")))))
 
 (defn get-player []
