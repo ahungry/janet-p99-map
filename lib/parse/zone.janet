@@ -1,6 +1,7 @@
 # Logic related to parsing map lines
 (import ../pubsub :as q)
 (import ../util :as u)
+(import ../io/fs :as fs)
 
 (import ./location)
 (import ./entered-zone)
@@ -49,7 +50,7 @@
 (var current-zone "ecommons")
 
 (defn parse-current-zone-file []
-  (let [file (string (u/file-finder "." "resources" 0 3) "/zones/" current-zone ".txt")]
+  (let [file (fs/make-path (string "resources/zones/" current-zone ".txt"))]
     (if (get points file)
       (get points file)
       (put points file (->> (load-zone file) (map parse-line))))))

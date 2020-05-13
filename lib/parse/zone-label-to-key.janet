@@ -1,4 +1,5 @@
 (import ../util :as u)
+(import ../io/fs)
 
 (def zones @{})
 
@@ -7,9 +8,10 @@
     (put zones (get parts 0) (get parts 1))))
 
 (defn load-zonelist []
-  (->> (slurp (string (u/file-finder "." "resources" 0 3) "/zonelist.txt"))
-       (string/split "\n")
-       (map zonelist-line->hash)))
+  (let [file (fs/make-path (string "resources/zonelist.txt"))]
+    (->> (slurp file)
+         (string/split "\n")
+         (map zonelist-line->hash))))
 
 (defn label->key [label]
   (when (= 0 (length zones)) (load-zonelist))
