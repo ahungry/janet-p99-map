@@ -116,10 +116,10 @@
         (IupDrawArc
          sx
          sy
-         (+ sx 25)
-         (+ sy 25)
-         (* 2 3.1418)
-         1.0))))
+         (+ sx 15)
+         (+ sy 15)
+         360.0
+         0.0))))
 
 (defn make-canvas [f-get-points f-get-player]
   (def ctx (IupCanvas "NULL"))
