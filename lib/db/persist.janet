@@ -10,7 +10,13 @@
 (defn create-db []
   (def db (sqlite3/open db-name))
   (sqlite3/eval db "PRAGMA journal_mode=WAL;")
-  (sqlite3/eval db "create table player (name text, x text, y text, at date, zone text)")
+  (sqlite3/eval db "create table player (
+          name text,
+          x text,
+          y text,
+          at date,
+          zone_name text,
+          zone text)")
   (sqlite3/close db))
 
 (defn ensure-db []
@@ -25,14 +31,16 @@
       (sqlite3/close db)
       res)
     ([err]
+     (pp "With-db encountered error: ")
+     (pp err)
      (os/sleep 0.05)
      (with-db sql args))))
 
 (defn set-coords
   "Save coordinates."
-  [name x y zone]
-  (with-db "INSERT INTO player (name, x, y, at, zone)
-            VALUES (?, ?, ?, ?, ?)" [name x y (os/time) zone]))
+  [name x y zone-name zone]
+  (with-db "INSERT INTO player (name, x, y, at, zone_name, zone)
+            VALUES (?, ?, ?, ?, ?, ?)" [name x y (os/time) zone-name zone]))
 
 (defn coord-res [res]
   (if (> (length res) 0)
@@ -40,16 +48,17 @@
       {:x (scan-number (get row :x))
        :y (scan-number (get row :y))
        :at (get row :at)
+       :zone-name (get row :zone_name)
        :zone (get row :zone)})
-    {:x 500 :y 500 :at 0 :zone "ecommons"}))
+    {:x 500 :y 500 :at 0 :zone-name "East Commonlands" :zone "ecommons"}))
 
 (defn get-coords
   "Pull out coordinates."
   [name]
-  (-> (with-db "SELECT name, x, y, at, zone
+  (-> (with-db "SELECT name, x, y, at, zone_name, zone
             FROM player WHERE name = ?
             ORDER BY at DESC LIMIT 1" [name])
       coord-res))
 
-# (set-coords "Dummy" 1000 1000 "everfrost")
-# (get-coords "Dummy")
+#(set-coords "Dummy" 1000 1000 "Everfrost" "everfrost")
+#(get-coords "Dummy")

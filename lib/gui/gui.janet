@@ -22,10 +22,16 @@
    ])
 
 (var canvas nil)
+(var label nil)
+(var zone-label "")
 (var init-at 0)
 (var set-timer? false)
 (var safe-to-redraw? false)
 (var drawn-once? false)
+
+(defn set-label [s]
+  (when label
+    (IupSetAttribute label "TITLE" s)))
 
 (defn safe-redraw
   "Attempt to avoid timing issues with redraw of canvas
@@ -40,12 +46,19 @@ during setup of the IupMainLoop by intentional stagger."
         (set safe-to-redraw? true))
       (IupUpdate canvas))))
 
+(defn update-zone-label []
+  (unless (= zone-label zone/current-zone-name)
+    (set zone-label zone/current-zone-name)
+    (set-label zone/current-zone-name)
+    (IupUpdate label)))
+
 (defn add-timer []
   (def timer (IupTimer))
   (IupSetAttribute timer "TIME" "500")
   (iup-set-thunk-callback
    timer "ACTION_CB"
    (fn [_ _]
+     (update-zone-label)
      (safe-redraw)))
   (IupSetAttribute timer "RUN" "yes")
   canvas)
@@ -166,14 +179,18 @@ during setup of the IupMainLoop by intentional stagger."
      (const-IUP-DEFAULT)))
   ctx)
 
-(defn make-dialog [children]
-  (def vbox (IupVbox (or children "NULL") (int-ptr)))
+(defn make-dialog [lbl ctx]
+  (def vbox (IupVbox lbl (int-ptr)))
+  (IupAppend vbox ctx)
   (bind-keys vbox)
   (-> (IupDialog vbox)
       (set-attr "TITLE" "p99 mapper")
       (set-attr "SIZE" "600x300")
       #bind-keys
       ))
+
+(defn make-label []
+  (set label (IupLabel "janet-p99-map")))
 
 (defn show-dialog [dialog]
   (IupShowXY dialog (const-IUP-CENTER) (const-IUP-CENTER)))
@@ -184,6 +201,7 @@ during setup of the IupMainLoop by intentional stagger."
 (defn main []
   (iup-init)
   (def canvas (make-canvas))
-  (show-dialog (make-dialog canvas))
+  (def label (make-label))
+  (show-dialog (make-dialog label canvas))
   (set init-at (os/time))
   (IupMainLoop))

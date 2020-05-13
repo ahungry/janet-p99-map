@@ -49,6 +49,7 @@
 (def points @{})
 
 (var current-zone "ecommons")
+(var current-zone-name "East Commonlands")
 
 (defn parse-current-zone-file []
   (let [file (fs/make-path (string "resources/zones/" current-zone ".txt"))]
@@ -77,7 +78,10 @@
     (entered-zone/entered-zone? s)
     (q/publish q/queue ::player-zone-change (entered-zone/entered-zone? s))
 
-    :else (eprintf "Unrecognized line found: [%s]" s)))
+    :else nil
+    #:else (eprintf "Unrecognized line found: [%s]" s)
+    )
+  )
 
 (defn update-player-coords [{:x sx :y sy :z sz}]
   # (pp "Updating player coords...")
@@ -85,15 +89,16 @@
   # (pp sy)
   (set x (scan-number sx))
   (set y (scan-number sy))
-  (p/set-coords "Dummy" x y current-zone))
+  (p/set-coords "Dummy" x y current-zone-name current-zone))
 
 (defn update-player-zone [[zone-name]]
   (pp "NEW ZONE ENTERED...")
   (pp zone-name)
   (pp "Translated was: ")
   (pp (zone-label-to-key/label->key zone-name))
+  (set current-zone-name zone-name)
   (set current-zone (zone-label-to-key/label->key zone-name))
-  (p/set-coords "Dummy" x y current-zone))
+  (p/set-coords "Dummy" x y current-zone-name current-zone))
 
 (q/subscribe q/queue ::player-loc (q/make-fn update-player-coords))
 (q/subscribe q/queue ::player-zone-change (q/make-fn update-player-zone))
@@ -147,12 +152,14 @@
     #(pp x)
     (def m (p/get-coords "Dummy"))
     (unless (= current-zone (get m :zone))
+      (set current-zone-name (get m :zone-name))
       (set current-zone (get m :zone)))
     m))
 
 (defn get-playerx []
   (def m (p/get-coords "Dummy"))
   (unless (= current-zone (get m :zone))
+    (set current-zone-name (get m :zone-name))
     (set current-zone (get m :zone)))
   m)
 
