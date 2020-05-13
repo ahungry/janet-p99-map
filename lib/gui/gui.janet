@@ -1,3 +1,5 @@
+(import ../parse/zone)
+
 (def KEY_UP 65362)
 (def KEY_DOWN 65364)
 (def KEY_LEFT 65361)
@@ -20,7 +22,23 @@
    ])
 
 (var canvas nil)
+(var init-at 0)
 (var set-timer? false)
+(var safe-to-redraw? false)
+(var drawn-once? false)
+
+(defn safe-redraw
+  "Attempt to avoid timing issues with redraw of canvas
+during setup of the IupMainLoop by intentional stagger."
+  []
+  (when (or safe-to-redraw?
+            (and (> init-at 0)
+                 drawn-once?
+                 (> (- (os/time) init-at) 1)))
+    (do
+      (unless safe-to-redraw?
+        (set safe-to-redraw? true))
+      (IupUpdate canvas))))
 
 (defn add-timer []
   (def timer (IupTimer))
@@ -28,7 +46,7 @@
   (iup-set-thunk-callback
    timer "ACTION_CB"
    (fn [_ _]
-     (IupRedraw canvas 0)))
+     (safe-redraw)))
   (IupSetAttribute timer "RUN" "yes")
   canvas)
 
@@ -78,7 +96,7 @@
      (pp "Working on K_ANY")
      (unless set-timer? (add-timer) (set set-timer? true))
      (key-handler k)
-     (IupRedraw canvas 0)
+     (safe-redraw)
      (const-IUP-DEFAULT)
      ))
   el)
@@ -94,7 +112,7 @@
 (defn point->line [ctx {:t t :x1 x1 :y1 y1 :x2 x2 :y2 y2}]
   (if (= "L" t)
     (-> ctx
-        (set-attr "DRAWCOLOR" "0 255 255")
+        (set-attr "DRAWCOLOR" "100 100 100")
         (set-attr "DRAWSTYLE" "FILL")
         (IupDrawLine
          (+ x-offset (s->n x1))
@@ -121,7 +139,7 @@
          360.0
          0.0))))
 
-(defn make-canvas [f-get-points f-get-player]
+(defn make-canvas []
   (def ctx (IupCanvas "NULL"))
   (set canvas ctx)
   (iup-set-thunk-callback
@@ -129,14 +147,22 @@
    (fn [ih _]
      (unless set-timer? (add-timer) (set set-timer? true))
      (IupDrawBegin ih)
-     (set-attr ih "DRAWCOLOR" "0 0 0")
+     (set-attr ih "DRAWCOLOR" "240 240 250")
      (set-attr ih "DRAWSTYLE" "FILL")
-     (IupDrawRectangle ih 0 0 100 100)
-     (when (f-get-points)
-       (zone->lines ih (f-get-points)))
-     (when (f-get-player)
-       (draw-player ih (f-get-player)))
+     (IupDrawRectangle ih 0 0 2000 2000)
+
+     # Ensure we show accurate/current map
+     (def points (zone/parse-current-zone-file))
+     (when points
+       (zone->lines ih points))
+
+     # Ensure we show player position
+     (def player (zone/get-playerx))
+     (when player
+       (draw-player ih player))
+
      (IupDrawEnd ih)
+     (set drawn-once? true)
      (const-IUP-DEFAULT)))
   ctx)
 
@@ -155,8 +181,9 @@
 (defn iup-init []
   (IupOpen (int-ptr) (char-ptr)))
 
-(defn main [f-get-points f-get-player]
+(defn main []
   (iup-init)
-  (def canvas (make-canvas f-get-points f-get-player))
+  (def canvas (make-canvas))
   (show-dialog (make-dialog canvas))
+  (set init-at (os/time))
   (IupMainLoop))

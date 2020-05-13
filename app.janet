@@ -3,9 +3,10 @@
 
 (defn main [_]
   (pp "Begin gui")
-  (gui/main
-   (zone/get-points "ecommons")
-   #(zone/get-points "./resources/zones/ecommons.txt")
-   #(zone/get-points "./resources/zones/everfrost.txt")
-   (zone/get-player))
+  (gui/main)
+  # (gui/main
+  #  (zone/get-points "ecommons")
+  #  #(zone/get-points "./resources/zones/ecommons.txt")
+  #  #(zone/get-points "./resources/zones/everfrost.txt")
+  #  (zone/get-player))
   (pp "Hello"))

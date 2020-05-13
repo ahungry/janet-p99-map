@@ -13,7 +13,7 @@
 (defn publish
   "Publish an EVENT with PAYLOAD to QUEUE."
   [queue event payload]
-  (pp "In publish")
+  #(pp "In publish")
   (let [f-list (or (get queue event) @[])]
     (map (fn [f] (f {:queue queue
                      :event event

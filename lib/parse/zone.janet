@@ -54,7 +54,9 @@
   (let [file (fs/make-path (string "resources/zones/" current-zone ".txt"))]
     (if (get points file)
       (get points file)
-      (put points file (->> (load-zone file) (map parse-line))))))
+      (do
+        (put points file (->> (load-zone file) (map parse-line)))
+        (get points file)))))
 
 (defn get-points [name]
   (set current-zone name)
@@ -75,12 +77,12 @@
     (entered-zone/entered-zone? s)
     (q/publish q/queue ::player-zone-change (entered-zone/entered-zone? s))
 
-    :else (eprintf "Unrecognized line found: %s" s)))
+    :else (eprintf "Unrecognized line found: [%s]" s)))
 
 (defn update-player-coords [{:x sx :y sy :z sz}]
-  (pp "Updating player coords...")
-  (pp sx)
-  (pp sy)
+  # (pp "Updating player coords...")
+  # (pp sx)
+  # (pp sy)
   (set x (scan-number sx))
   (set y (scan-number sy))
   (p/set-coords "Dummy" x y current-zone))
@@ -131,7 +133,7 @@
  (fn [parent]
    (while true
      (do
-       (os/sleep 1)
+       (os/sleep 0.3)
        (parse-log-file "player.txt")))))
 
 (defn get-player []
@@ -147,6 +149,12 @@
     (unless (= current-zone (get m :zone))
       (set current-zone (get m :zone)))
     m))
+
+(defn get-playerx []
+  (def m (p/get-coords "Dummy"))
+  (unless (= current-zone (get m :zone))
+    (set current-zone (get m :zone)))
+  m)
 
 # (parse-map-lines "/home/mcarter/src/ahungry-map/res/maps/tutorialb.txt")
 # Line format is as such:

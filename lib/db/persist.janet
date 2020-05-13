@@ -16,18 +16,23 @@
 (defn ensure-db []
   (or (os/stat db-name) (create-db)))
 
-(defn set-coords
-  "Save coordinates"
-  [name x y zone]
+(defn with-db [sql args]
   (try
     (do
       (ensure-db)
       (def db (sqlite3/open db-name))
-      (sqlite3/eval db "INSERT INTO player (name, x, y, at, zone) VALUES (?, ?, ?, ?, ?)"
-                    [name x y (os/time) zone])
-      (sqlite3/close db))
+      (def res (sqlite3/eval db sql args))
+      (sqlite3/close db)
+      res)
     ([err]
-     (set-coords name x y zone))))
+     (os/sleep 0.05)
+     (with-db sql args))))
+
+(defn set-coords
+  "Save coordinates."
+  [name x y zone]
+  (with-db "INSERT INTO player (name, x, y, at, zone)
+            VALUES (?, ?, ?, ?, ?)" [name x y (os/time) zone]))
 
 (defn coord-res [res]
   (if (> (length res) 0)
@@ -39,21 +44,12 @@
     {:x 500 :y 500 :at 0 :zone "ecommons"}))
 
 (defn get-coords
-  "Pull out coordinates"
+  "Pull out coordinates."
   [name]
-  (try
-    (do
-      (ensure-db)
-      (def db (sqlite3/open db-name))
-      (def res (sqlite3/eval
-                db
-                "SELECT name, x, y, at, zone FROM
- player WHERE name = ? ORDER BY at DESC LIMIT 1"
-                [name]))
-      (sqlite3/close db)
-      (coord-res res))
-    ([err]
-     (get-coords name))))
+  (-> (with-db "SELECT name, x, y, at, zone
+            FROM player WHERE name = ?
+            ORDER BY at DESC LIMIT 1" [name])
+      coord-res))
 
 # (set-coords "Dummy" 1000 1000 "everfrost")
 # (get-coords "Dummy")
