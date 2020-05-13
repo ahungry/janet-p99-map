@@ -2,6 +2,7 @@
 (import ../pubsub :as q)
 (import ../util :as u)
 (import ../io/fs :as fs)
+(import ../db/persist :as p)
 
 (import ./location)
 (import ./entered-zone)
@@ -58,8 +59,6 @@
 (defn get-points [name]
   (set current-zone name)
   (fn []
-    (pp "The current zone is: ")
-    (pp current-zone)
     (parse-current-zone-file)))
 
 (var x 0)
@@ -83,7 +82,8 @@
   (pp sx)
   (pp sy)
   (set x (scan-number sx))
-  (set y (scan-number sy)))
+  (set y (scan-number sy))
+  (p/set-coords "Dummy" x y current-zone))
 
 (defn update-player-zone [[zone-name]]
   (pp "NEW ZONE ENTERED...")
@@ -91,7 +91,7 @@
   (pp "Translated was: ")
   (pp (zone-label-to-key/label->key zone-name))
   (set current-zone (zone-label-to-key/label->key zone-name))
-  )
+  (p/set-coords "Dummy" x y current-zone))
 
 (q/subscribe q/queue ::player-loc (q/make-fn update-player-coords))
 (q/subscribe q/queue ::player-zone-change (q/make-fn update-player-zone))
@@ -101,16 +101,26 @@
 (defn parse-log-file [file]
   (->> (load-log file) (map log-line-handler)))
 
+(thread/new
+ (fn [parent]
+   (while true
+     (do
+       (os/sleep 2)
+       (parse-log-file "player.txt")))))
 
 (defn get-player []
   (fn []
     # Need to ensure this runs in a different background thread
     # Ideally, we would parse log file and write zone/loc to sqlite
     # Then just select them out here.
-    (parse-log-file "player.txt")
+
+    #(parse-log-file "player.txt")
     #(pp "X is: ")
     #(pp x)
-    @{:x x :y y}))
+    (def m (p/get-coords "Dummy"))
+    (unless (= current-zone (get m :zone))
+      (set current-zone (get m :zone)))
+    m))
 
 # (parse-map-lines "/home/mcarter/src/ahungry-map/res/maps/tutorialb.txt")
 # Line format is as such:

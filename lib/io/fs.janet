@@ -20,8 +20,6 @@
 (def this-loc (dyn :source))
 
 (defn get-directory [file]
-  (pp "In dir: ")
-  (pp file)
   (when file
     (if (= file "util.janet")
       "."
