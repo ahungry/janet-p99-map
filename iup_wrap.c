@@ -294,6 +294,7 @@ IupSetThunkCallback_wrapped (int32_t argc, Janet *argv)
       janet_iup_cbs = janet_table (0);
       tablev = janet_wrap_table (janet_iup_cbs);
 
+      // https://janet-lang.org/capi/memory-model.html
       janet_gcroot (tablev);
     }
 
