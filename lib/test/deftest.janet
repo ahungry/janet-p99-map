@@ -60,6 +60,8 @@
                       "Failed <%s> of the form:" (or what "?")))
               (prin "   ")
               (map pp (array/slice (first rest) 1))
+              (prinf "Actual result was:\n   ")
+              (pp (eval (-> ;rest (get 1) (get 2) )))
               (print "\n")
               (set fail (inc fail)))
             ))
