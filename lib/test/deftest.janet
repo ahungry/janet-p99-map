@@ -59,8 +59,8 @@
               (print (string/format
                       "Failed <%s> of the form:" (or what "?")))
               (prin "   ")
-              (map pp rest)
-              (print (string/format "due to error: %s\n" err))
+              (map pp (array/slice (first rest) 1))
+              (print "\n")
               (set fail (inc fail)))
             ))
          (prin-now "x")

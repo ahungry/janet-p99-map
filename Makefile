@@ -77,4 +77,7 @@ docker-run:
 demo-dog:
 	./super-repl.bin ./examples/dog-gui.janet
 
-.PHONY: docker-ubuntu demo-dog
+test:
+	./super-repl.bin ./test/test.janet
+
+.PHONY: docker-ubuntu demo-dog test
