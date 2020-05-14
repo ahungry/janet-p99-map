@@ -26,3 +26,5 @@
 [Fri Oct 25 13:41:22 2019] Your Location is 435.10, 562.05, -27.64
 [Fri Oct 25 13:41:22 2019] Your Location is 485.10, 562.05, -27.64
 [Fri Oct 25 13:41:22 2019] Your Location is 685.10, 562.05, -27.64
+[Fri Oct 25 13:41:22 2019] Your Location is 1685.10, 562.05, -27.64
+[Fri Oct 25 13:41:22 2019] Your Location is 685.10, 562.05, -27.64

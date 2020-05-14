@@ -3,6 +3,9 @@
 
 (defn main [_]
   (pp "Begin gui")
+  (zone/parse-current-zone-file)
+  (zone/init-player)
+  (pp "done parse")
   (gui/main)
   # (gui/main
   #  (zone/get-points "ecommons")

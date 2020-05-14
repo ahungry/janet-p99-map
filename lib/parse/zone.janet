@@ -8,7 +8,6 @@
 (import ./entered-zone)
 (import ./zone-label-to-key)
 
-(length "")
 # Parse a zone line
 (defn split-line [s]
   (if (> 3 (length s))
@@ -46,18 +45,24 @@
 (defn load-zone [file]
   (->> (slurp file) (string/split "\n")))
 
-(def points @{})
-
 (var current-zone "ecommons")
 (var current-zone-name "East Commonlands")
 
+# Treating an in-memory points array as a reference
+# for the draw fn causes segfaults - maybe marshal is too large?
 (defn parse-current-zone-file []
-  (let [file (fs/make-path (string "resources/zones/" current-zone ".txt"))]
-    (if (get points file)
-      (get points file)
-      (do
-        (put points file (->> (load-zone file) (map parse-line)))
-        (get points file)))))
+  (def maybe-points (p/get-zone current-zone))
+
+  (if (and maybe-points (> (length maybe-points) 0))
+    maybe-points
+    (let [file (fs/make-path (string "resources/zones/" current-zone ".txt"))]
+      (eprintf "Loading zone for the first time, please wait...")
+      (def zone-points (->> (load-zone file) (map parse-line)))
+      (map (fn [xs]
+             (pp xs)
+             (p/set-zone current-zone xs))
+           zone-points)
+      zone-points)))
 
 (defn get-points [name]
   (set current-zone name)
@@ -134,12 +139,13 @@
       (pp lines)
       (map log-line-handler (string/split "\n" lines)))))
 
-(thread/new
- (fn [parent]
-   (while true
-     (do
-       (os/sleep 0.3)
-       (parse-log-file "player.txt")))))
+(defn init-player []
+  (thread/new
+   (fn [parent]
+     (while true
+       (do
+         (os/sleep 0.3)
+         (parse-log-file "player.txt"))))))
 
 (defn get-player []
   (fn []
