@@ -47,29 +47,23 @@
 
 (var current-zone "ecommons")
 (var current-zone-name "East Commonlands")
-(var current-zone-points @[])
+(var points @{})
 
 # Treating an in-memory points array as a reference
 # for the draw fn causes segfaults - maybe marshal is too large?
 (defn parse-current-zone-file []
-  (def maybe-points (p/get-zone current-zone))
+  (def maybe-points (get points current-zone))
 
-  (if (and maybe-points (> (length maybe-points) 0))
+  (if maybe-points
     maybe-points
     (let [file (fs/make-path (string "resources/zones/" current-zone ".txt"))]
       (eprintf "Loading zone for the first time, please wait...")
       (def zone-points (->> (load-zone file) (map parse-line)))
-      (map (fn [xs]
-             (pp xs)
-             (p/set-zone current-zone xs))
-           zone-points)
+      (put points current-zone zone-points)
       zone-points)))
 
 (defn get-points []
-  (if (and current-zone-points
-           (> (length current-zone-points) 0))
-    current-zone-points
-    (parse-current-zone-file)))
+  (parse-current-zone-file))
 
 (var x 0)
 (var y 0)
