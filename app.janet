@@ -2,9 +2,10 @@
 (import lib/gui/gui :as gui)
 
 (defn main [_]
+  (pp (dyn :args))
   (pp "Begin gui")
   (zone/parse-current-zone-file)
-  (zone/init-player)
+  (zone/init-player (first (dyn :args )))
   (pp "done parse")
   (gui/main)
   # (gui/main

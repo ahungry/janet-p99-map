@@ -15,12 +15,6 @@
   (IupSetAttribute x k v)
   x)
 
-(defn get-points []
-  [
-   {:x1 0 :y1 0 :x2 100 :y2 0}
-   {:x1 100 :y1 0 :x2 100 :y2 100}
-   ])
-
 (var canvas nil)
 (var label nil)
 (var zone-label "")
@@ -165,7 +159,7 @@ during setup of the IupMainLoop by intentional stagger."
      (IupDrawRectangle ih 0 0 2000 2000)
 
      # Ensure we show accurate/current map
-     (def points (zone/parse-current-zone-file))
+     (def points (zone/get-points))
      (when points
        (zone->lines ih points))
 

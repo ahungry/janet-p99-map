@@ -241,13 +241,29 @@ call_thunk_N (Ihandle* ih)
 }
 
 JanetTable * janet_iup_cbs = NULL;
+Janet tablev;
 
 // TODO: Re-implement the thunk storage and calling with something like this.
 static int
 janet_iup_universal_cb (Ihandle *ih, int c)
 {
-  JanetFunction *f = janet_unwrap_function (janet_table_get (janet_iup_cbs,
-                                                             janet_wrap_pointer (ih)));
+  if (NULL == janet_iup_cbs)
+    {
+      fprintf (stderr, "callback invoked before stored, leave early\n");
+
+      return 1;
+    }
+
+  Janet wf = janet_table_get (janet_iup_cbs, janet_wrap_pointer (ih));
+
+  if (!janet_checktype (wf, JANET_FUNCTION))
+    {
+      fprintf (stderr, "wf not defined as a function, leave early\n");
+
+      return 1;
+    }
+
+  JanetFunction *f = janet_unwrap_function (wf);
 
   JanetArray *args;
   args = janet_array (2);
@@ -276,6 +292,9 @@ IupSetThunkCallback_wrapped (int32_t argc, Janet *argv)
   if (NULL == janet_iup_cbs)
     {
       janet_iup_cbs = janet_table (0);
+      tablev = janet_wrap_table (janet_iup_cbs);
+
+      janet_gcroot (tablev);
     }
 
   janet_table_put(janet_iup_cbs, janet_wrap_pointer (arg_0), janet_wrap_function (f));

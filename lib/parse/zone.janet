@@ -47,6 +47,7 @@
 
 (var current-zone "ecommons")
 (var current-zone-name "East Commonlands")
+(var current-zone-points @[])
 
 # Treating an in-memory points array as a reference
 # for the draw fn causes segfaults - maybe marshal is too large?
@@ -64,9 +65,10 @@
            zone-points)
       zone-points)))
 
-(defn get-points [name]
-  (set current-zone name)
-  (fn []
+(defn get-points []
+  (if (and current-zone-points
+           (> (length current-zone-points) 0))
+    current-zone-points
     (parse-current-zone-file)))
 
 (var x 0)
@@ -139,13 +141,13 @@
       (pp lines)
       (map log-line-handler (string/split "\n" lines)))))
 
-(defn init-player []
+(defn init-player [log-file]
   (thread/new
    (fn [parent]
      (while true
        (do
          (os/sleep 0.3)
-         (parse-log-file "player.txt"))))))
+         (parse-log-file log-file))))))
 
 (defn get-player []
   (fn []
