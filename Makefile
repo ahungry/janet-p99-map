@@ -4,7 +4,8 @@
 
 CC=gcc
 
-CFLAGS=-fsanitize=address -g -Wall -Wno-unused-variable -Wno-unused-function -Wno-unused-parameter -Wno-format-truncation -std=gnu99 -fPIC
+#-fsanitize=address -g
+CFLAGS=-Wall -Wno-unused-variable -Wno-unused-function -Wno-unused-parameter -Wno-format-truncation -std=gnu99 -fPIC
 LFLAGS=-lm -pthread -lz
 
 JANET_CFLAGS=-I./ -I./build/janet/build
