@@ -111,6 +111,9 @@ during setup of the IupMainLoop by intentional stagger."
 (defn scale [n]
   (math/round (* n scale-factor)))
 
+(defn scale-player [n]
+  (* -1 (math/round (* n scale-factor))))
+
 (defn s->n [s]
   (if (= nil s)
     0
@@ -132,9 +135,10 @@ during setup of the IupMainLoop by intentional stagger."
 (defn zone->lines [ctx points]
   (map (partial point->line ctx) points))
 
+# NOTE: x/y is reversed and inversed
 (defn draw-player [ctx {:x x :y y}]
-  (let [sx (+ x-offset (scale x))
-        sy (+ y-offset (scale y))]
+  (let [sx (+ x-offset (scale-player y))
+        sy (+ y-offset (scale-player x))]
     (-> ctx
         (set-attr "DRAWCOLOR" "255 0 0")
         (set-attr "DRAWSTYLE" "FILL")
