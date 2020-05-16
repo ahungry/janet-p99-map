@@ -1,5 +1,5 @@
 # Match on entering a zone in log file
-(import ../util :as u)
+(import ./util :as u)
 
 # [Fri Oct 25 13:40:49 2019] You have entered Everfrost.
 (def peg-entered-zone

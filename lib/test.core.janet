@@ -1,7 +1,7 @@
-(import ../lib/test/deftest :as t)
-(import ../lib/io/fs)
-(import ../lib/util)
-(import ../lib/parse/zone)
+(import ./test.deftest :as t)
+(import ./io.fs)
+(import ./util)
+(import ./parse.core)
 
 (defmacro is [a b]
   ~(t/deftest
@@ -10,7 +10,7 @@
 
 (defn test-fs []
   (is "lib//../lib/pubsub.janet"
-      (fs/make-path "lib/pubsub.janet")))
+      (io.fs/make-path "lib/pubsub.janet")))
 
 (defn test-util []
   (is @{:a 3 :b 2}
@@ -20,7 +20,7 @@
   )
 
 (defn test-zone []
-  (is @["H" "" "i"] (zone/split-line "H , i")))
+  (is @["H" "" "i"] (parse.core/split-line "H , i")))
 
 (test-util)
 (test-zone)

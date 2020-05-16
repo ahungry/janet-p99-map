@@ -1,7 +1,7 @@
 # Ensure we have a way to keep data persistent without worrying about
 # shuffing it back and forth between threads.
 
-(import ../io/fs)
+(import ./io.fs :as fs)
 
 (def db-name (fs/make-path "app.db"))
 

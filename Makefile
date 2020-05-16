@@ -78,6 +78,6 @@ demo-dog:
 	./super-repl.bin ./examples/dog-gui.janet
 
 test:
-	./super-repl.bin ./test/test.janet
+	./super-repl.bin ./lib/test.core.janet
 
 .PHONY: docker-ubuntu demo-dog test

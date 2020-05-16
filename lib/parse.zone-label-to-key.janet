@@ -1,5 +1,5 @@
-(import ../util :as u)
-(import ../io/fs)
+(import ./util :as u :fresh true)
+(import ./io.fs :as fs :fresh true)
 
 (def zones @{})
 

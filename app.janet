@@ -1,5 +1,5 @@
-(import lib/parse/zone :as zone)
-(import lib/gui/gui :as gui)
+(import ./lib/parse.core :as zone)
+(import ./lib/gui.core :as gui)
 
 (defn main [_]
   (pp (dyn :args))

@@ -1,5 +1,5 @@
 # Match on entering a given location in log file
-(import ../util :as u)
+(import ./util :as u)
 
 # [Fri Oct 25 13:41:22 2019] Your Location is 3435.10, 562.05, -27.64
 (def peg-location

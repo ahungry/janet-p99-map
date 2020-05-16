@@ -1,4 +1,4 @@
-(import ../parse/zone)
+(import ./parse.core :as zone)
 
 (def KEY_UP 65362)
 (def KEY_DOWN 65364)
