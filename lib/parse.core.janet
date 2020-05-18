@@ -48,6 +48,13 @@
 (var current-zone "ecommons")
 (var current-zone-name "East Commonlands")
 (var points @{})
+(var player-name "Dummy")
+
+(defn set-player-name [s]
+  (set player-name s))
+
+(defn get-player-name []
+  player-name)
 
 # Treating an in-memory points array as a reference
 # for the draw fn causes segfaults - maybe marshal is too large?
@@ -90,7 +97,7 @@
   # (pp sy)
   (set x (scan-number sx))
   (set y (scan-number sy))
-  (p/set-coords "Dummy" x y current-zone-name current-zone))
+  (p/set-coords (get-player-name) x y current-zone-name current-zone))
 
 (defn update-player-zone [[zone-name]]
   (pp "NEW ZONE ENTERED...")
@@ -99,7 +106,7 @@
   (pp (zone-label-to-key/label->key zone-name))
   (set current-zone-name zone-name)
   (set current-zone (zone-label-to-key/label->key zone-name))
-  (p/set-coords "Dummy" x y current-zone-name current-zone))
+  (p/set-coords (get-player-name) x y current-zone-name current-zone))
 
 (q/subscribe q/queue ::player-loc (q/make-fn update-player-coords))
 (q/subscribe q/queue ::player-zone-change (q/make-fn update-player-zone))
@@ -152,14 +159,14 @@
     #(parse-log-file "player.txt")
     #(pp "X is: ")
     #(pp x)
-    (def m (p/get-coords "Dummy"))
+    (def m (p/get-coords (get-player-name)))
     (unless (= current-zone (get m :zone))
       (set current-zone-name (get m :zone-name))
       (set current-zone (get m :zone)))
     m))
 
 (defn get-playerx []
-  (def m (p/get-coords "Dummy"))
+  (def m (p/get-coords (get-player-name)))
   (unless (= current-zone (get m :zone))
     (set current-zone-name (get m :zone-name))
     (set current-zone (get m :zone)))

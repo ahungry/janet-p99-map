@@ -4,6 +4,7 @@
 (defn main [_]
   (pp (dyn :args))
   (pp "Begin gui")
+  (zone/set-player-name (get (dyn :args) 1))
   (zone/parse-current-zone-file)
   (zone/init-player (first (dyn :args )))
   (pp "done parse")
