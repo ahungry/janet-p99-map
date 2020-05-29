@@ -22,7 +22,7 @@ git clone \
 # cp json/json.c        build/janet/src/
 
 cd build/janet
-make -j8
+make -j
 
 # cd $top
 
