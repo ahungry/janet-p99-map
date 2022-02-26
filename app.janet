@@ -2,7 +2,9 @@
 (import ./lib/gui.core :as gui)
 
 (defn main [_]
-  (pp (dyn :args))
+  (unless (> (length (dyn :args)) 1)
+    (print (string "Usage: ./app.bin <path to logfile> <player name>"))
+    (os/exit 1))
   (pp "Begin gui")
   (zone/set-player-name (get (dyn :args) 1))
   (zone/parse-current-zone-file)
